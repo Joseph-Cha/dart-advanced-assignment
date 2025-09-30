@@ -37,35 +37,39 @@ import 'dart:io';
 import 'package:dart_advanced_assignment/student_score.dart';
 
 class ScoreRepository {
-  List<StudentScore> scores_;
-  final scriptDir = File(Platform.script.toFilePath()).parent.parent.path;
+  final List<StudentScore> _scores;
+  final String _scriptDir = File(Platform.script.toFilePath()).parent.parent.path;
 
-  List<StudentScore> get scores => scores_;
+  List<StudentScore> get scores => _scores;
 
-  ScoreRepository() : scores_ = [] {
-    scores_ = loadScore();
+  ScoreRepository() : _scores = [] {
+    _scores.addAll(_loadScores());
   }
 
-  List<StudentScore> loadScore() {
+  List<StudentScore> _loadScores() {
     try {
-      List<StudentScore> scores = [];
-      final filePath = '$scriptDir/data/students.txt';
+      final filePath = '$_scriptDir/data/students.txt';
       final file = File(filePath);
       final lines = file.readAsLinesSync();
 
-      for (var line in lines) {
-        final parts = line.split(',');
-        if (parts.length != 2) throw FormatException('잘못된 데이터 형식: $line');
-        var score = StudentScore(name: parts[0], score: int.parse(parts[1]));
-        scores.add(score);
-      }
-      return scores;
+      return lines.map((line) => _parseStudentScore(line)).toList();
     } catch (e) {
       throw FileSystemException('학생 데이터를 불러오는 데 실패했습니다: $e');
     }
   }
 
-  void saveScore(String filePath, String content) {
+  StudentScore _parseStudentScore(String line) {
+    final parts = line.split(',');
+    if (parts.length != 2) {
+      throw FormatException('잘못된 데이터 형식: $line');
+    }
+    return StudentScore(
+      name: parts[0],
+      score: int.parse(parts[1]),
+    );
+  }
+
+  void _saveToFile(String filePath, String content) {
     try {
       final file = File(filePath);
       file.writeAsStringSync(content);
@@ -76,23 +80,24 @@ class ScoreRepository {
   }
 
   void run() {
-    String? input;
-    StudentScore score;
+    final selectedScore = _getStudentScoreFromUser();
+    final result = '이름: ${selectedScore.name}, 점수: ${selectedScore.score}';
+    print(result);
+
+    final resultFilePath = '$_scriptDir/data/result.txt';
+    _saveToFile(resultFilePath, result);
+  }
+
+  StudentScore _getStudentScoreFromUser() {
     while (true) {
       stdout.write('어떤 학생의 통계를 확인하시겠습니까? ');
-      input = stdin.readLineSync();
+      final input = stdin.readLineSync();
+
       try {
-        score = scores_.firstWhere((s) {
-          return s.name == input;
-        });
-        break;
+        return _scores.firstWhere((s) => s.name == input);
       } catch (e) {
         print('잘못된 학생 이름을 입력하셨습니다. 다시 입력해주세요.');
       }
     }
-    String result = '이름: ${score.name}, 점수: ${score.score}';
-    print(result);
-    final filePath = '$scriptDir/data/result.txt';
-    saveScore(filePath, result);
   }
 }
