@@ -40,7 +40,7 @@ class ScoreAnalyzer {
   }
 
   void _displayMenu() {
-    stdout.write('메뉴를 선택하세요: \n1. 우수생 출력 \n\n2. 전체 평균 점수 출력 \n\n3. 종료\n\n입력: ');
+    stdout.write('메뉴를 선택하세요: \n1. 우수생 출력 \n\n2. 전체 평균 점수 출력 \n\n3. 학생별 순위 출력 \n\n4. 종료\n\n입력: ');
   }
 
   bool _handleMenuChoice(int? choice) {
@@ -52,6 +52,9 @@ class ScoreAnalyzer {
         printOverallAverage();
         return true;
       case 3:
+        printStudentRankings();
+        return true;
+      case 4:
         print('프로그램을 종료합니다.');
         return false;
       default:
@@ -107,5 +110,34 @@ class ScoreAnalyzer {
     final average = totalScore / scores.length;
 
     print('전체 평균 점수: ${average.toStringAsFixed(1)}\n');
+  }
+
+  void printStudentRankings() {
+    final studentScores = groupScoresByStudent();
+
+    if (studentScores.isEmpty) {
+      print('점수 데이터가 없습니다.');
+      return;
+    }
+
+    // 학생별 평균 점수 계산
+    final rankings = <Map<String, dynamic>>[];
+    for (final entry in studentScores.entries) {
+      final average = entry.value.reduce((a, b) => a + b) / entry.value.length;
+      rankings.add({'name': entry.key, 'average': average});
+    }
+
+    // 평균 점수 기준 내림차순 정렬
+    rankings.sort((a, b) => (b['average'] as double).compareTo(a['average'] as double));
+
+    // 순위 출력
+    print('\n=== 학생별 순위 ===');
+    for (int i = 0; i < rankings.length; i++) {
+      final rank = i + 1;
+      final name = rankings[i]['name'];
+      final average = (rankings[i]['average'] as double).toStringAsFixed(1);
+      print('$rank위: $name (평균 점수: $average)');
+    }
+    print('');
   }
 }
