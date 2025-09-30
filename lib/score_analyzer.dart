@@ -23,67 +23,89 @@ import 'dart:io';
 import 'package:dart_advanced_assignment/score_repository.dart';
 
 class ScoreAnalyzer {
-  ScoreRepository repository;
+  final ScoreRepository repository;
+
   ScoreAnalyzer() : repository = ScoreRepository();
 
   void run() {
     while (true) {
-      stdout.write(
-        '메뉴를 선택하세요: \n1. 우수생 출력 \n\n2. 전체 평균 점수 출력 \n\n3. 종료\n\n입력: ',
-      );
-      String? intput = stdin.readLineSync();
-      int? number = int.tryParse(intput!);
+      _displayMenu();
+      final input = stdin.readLineSync();
+      final menuChoice = int.tryParse(input ?? '');
 
-      if (number == 1) {
-        printHighScoreOfStudent();
-      } else if (number == 2) {
-        printTotalAverageScore();
-      } else if (number == 3) {
-        print('프로그램을 종료합니다.');
+      if (!_handleMenuChoice(menuChoice)) {
         break;
       }
     }
   }
 
-  void printHighScoreOfStudent() {
-    var scores = repository.scores;
-    Map<String, List<int>> datas = {};
-    for (var s in scores) {
-      if (datas.containsKey(s.name)) {
-        datas[s.name]!.add(s.score);
-      } else {
-        datas[s.name] = [s.score];
-      }
+  void _displayMenu() {
+    stdout.write('메뉴를 선택하세요: \n1. 우수생 출력 \n\n2. 전체 평균 점수 출력 \n\n3. 종료\n\n입력: ');
+  }
+
+  bool _handleMenuChoice(int? choice) {
+    switch (choice) {
+      case 1:
+        printTopStudent();
+        return true;
+      case 2:
+        printOverallAverage();
+        return true;
+      case 3:
+        print('프로그램을 종료합니다.');
+        return false;
+      default:
+        return true;
     }
-    int highScore = 0;
+  }
 
-    String highScoreStudentName = '';
-    int count = 0;
+  void printTopStudent() {
+    final studentAverages = groupScoresByStudent();
 
-    for (String key in datas.keys) {
-      List<int>? data = datas[key];
-      int totalScore = data!.fold(0, (a, b) {
-        return a + b;
-      });
-      if (totalScore > highScore) {
-        highScore = totalScore;
-        highScoreStudentName = key;
-        count = data.length;
-      }
-    }
+    if (studentAverages.isEmpty) return;
 
+    final topStudent = findTopStudent(studentAverages);
     print(
-      '우수생: $highScoreStudentName (평균 점수: ${(highScore / count).toStringAsFixed(1)})',
+      '우수생: ${topStudent['name']} (평균 점수: ${topStudent['average'].toStringAsFixed(1)})\n',
     );
   }
 
-  void printTotalAverageScore() {
-    var scores = repository.scores;
-    int totalScore = 0;
-    for (var s in scores) {
-      totalScore += s.score;
+  Map<String, List<int>> groupScoresByStudent() {
+    final studentScores = <String, List<int>>{};
+
+    for (final score in repository.scores) {
+      studentScores.putIfAbsent(score.name, () => []).add(score.score);
     }
 
-    print('전체 평균 점수: ${(totalScore / scores.length).toStringAsFixed(1)}');
+    return studentScores;
+  }
+
+  Map<String, dynamic> findTopStudent(Map<String, List<int>> studentScores) {
+    String topName = '';
+    double topAverage = 0.0;
+
+    for (final entry in studentScores.entries) {
+      final average = entry.value.reduce((a, b) => a + b) / entry.value.length;
+      if (average > topAverage) {
+        topAverage = average;
+        topName = entry.key;
+      }
+    }
+
+    return {'name': topName, 'average': topAverage};
+  }
+
+  void printOverallAverage() {
+    final scores = repository.scores;
+
+    if (scores.isEmpty) {
+      print('점수 데이터가 없습니다.');
+      return;
+    }
+
+    final totalScore = scores.fold<int>(0, (sum, s) => sum + s.score);
+    final average = totalScore / scores.length;
+
+    print('전체 평균 점수: ${average.toStringAsFixed(1)}\n');
   }
 }
