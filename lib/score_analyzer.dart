@@ -63,17 +63,17 @@ class ScoreAnalyzer {
   }
 
   void printTopStudent() {
-    final studentAverages = groupScoresByStudent();
+    final studentAverages = _groupScoresByStudent();
 
     if (studentAverages.isEmpty) return;
 
-    final topStudent = findTopStudent(studentAverages);
+    final topStudent = _findTopStudent(studentAverages);
     print(
       '우수생: ${topStudent['name']} (평균 점수: ${topStudent['average'].toStringAsFixed(1)})\n',
     );
   }
 
-  Map<String, List<int>> groupScoresByStudent() {
+  Map<String, List<int>> _groupScoresByStudent() {
     final studentScores = <String, List<int>>{};
 
     for (final score in repository.scores) {
@@ -83,7 +83,7 @@ class ScoreAnalyzer {
     return studentScores;
   }
 
-  Map<String, dynamic> findTopStudent(Map<String, List<int>> studentScores) {
+  Map<String, dynamic> _findTopStudent(Map<String, List<int>> studentScores) {
     String topName = '';
     double topAverage = 0.0;
 
@@ -113,7 +113,7 @@ class ScoreAnalyzer {
   }
 
   void printStudentRankings() {
-    final studentScores = groupScoresByStudent();
+    final studentScores = _groupScoresByStudent();
 
     if (studentScores.isEmpty) {
       print('점수 데이터가 없습니다.');

@@ -34,11 +34,13 @@
 */
 
 import 'dart:io';
-import 'package:dart_advanced_assignment/student_score.dart';
+import 'package:dart_advanced_assignment/score.dart';
 
 class ScoreRepository {
   final List<StudentScore> _scores;
-  final String _scriptDir = File(Platform.script.toFilePath()).parent.parent.path;
+  final String _scriptDir = File(
+    Platform.script.toFilePath(),
+  ).parent.parent.path;
 
   List<StudentScore> get scores => _scores;
 
@@ -63,10 +65,7 @@ class ScoreRepository {
     if (parts.length != 2) {
       throw FormatException('잘못된 데이터 형식: $line');
     }
-    return StudentScore(
-      name: parts[0],
-      score: int.parse(parts[1]),
-    );
+    return StudentScore(name: parts[0], score: int.parse(parts[1]));
   }
 
   void _saveToFile(String filePath, String content) {
