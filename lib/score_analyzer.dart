@@ -40,7 +40,7 @@ class ScoreAnalyzer {
   }
 
   void _displayMenu() {
-    stdout.write('메뉴를 선택하세요: \n1. 우수생 출력 \n\n2. 전체 평균 점수 출력 \n\n3. 학생별 순위 출력 \n\n4. 종료\n\n입력: ');
+    stdout.write('메뉴를 선택하세요: \n1. 우수생 출력 \n\n2. 전체 평균 점수 출력 \n\n3. 학생별 순위 출력 \n\n4. 성적 등급 분포 출력 \n\n5. 종료\n\n입력: ');
   }
 
   bool _handleMenuChoice(int? choice) {
@@ -55,6 +55,9 @@ class ScoreAnalyzer {
         printStudentRankings();
         return true;
       case 4:
+        printGradeDistribution();
+        return true;
+      case 5:
         print('프로그램을 종료합니다.');
         return false;
       default:
@@ -139,5 +142,67 @@ class ScoreAnalyzer {
       print('$rank위: $name (평균 점수: $average)');
     }
     print('');
+  }
+
+  void printGradeDistribution() {
+    final scores = repository.scores;
+
+    if (scores.isEmpty) {
+      print('점수 데이터가 없습니다.');
+      return;
+    }
+
+    // 등급별 개수 초기화
+    final gradeCount = {
+      'A': 0,
+      'B': 0,
+      'C': 0,
+      'D': 0,
+      'F': 0,
+    };
+
+    // 각 점수를 등급으로 분류
+    for (final score in scores) {
+      final grade = _calculateGrade(score.score);
+      gradeCount[grade] = gradeCount[grade]! + 1;
+    }
+
+    final totalScores = scores.length;
+
+    // 등급 분포 출력
+    print('\n=== 성적 등급 분포 ===');
+    print('총 점수 개수: $totalScores개\n');
+
+    gradeCount.forEach((grade, count) {
+      final percentage = (count / totalScores * 100).toStringAsFixed(1);
+      final gradeRange = _getGradeRange(grade);
+      print('$grade등급 ($gradeRange): $count개 ($percentage%)');
+    });
+    print('');
+  }
+
+  String _calculateGrade(int score) {
+    if (score >= 90) return 'A';
+    if (score >= 80) return 'B';
+    if (score >= 70) return 'C';
+    if (score >= 60) return 'D';
+    return 'F';
+  }
+
+  String _getGradeRange(String grade) {
+    switch (grade) {
+      case 'A':
+        return '90-100점';
+      case 'B':
+        return '80-89점';
+      case 'C':
+        return '70-79점';
+      case 'D':
+        return '60-69점';
+      case 'F':
+        return '60점 미만';
+      default:
+        return '';
+    }
   }
 }
